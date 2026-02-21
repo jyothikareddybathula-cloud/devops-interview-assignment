@@ -1,67 +1,65 @@
 #!/usr/bin/env python3
-"""
-deploy.py — Deployment automation script
-
-TASK: Implement a deployment script for the video-analytics service.
-
-Requirements:
-  - argparse CLI with subcommands: deploy, rollback, status
-  - deploy: takes --environment (staging/production), --image-tag, --dry-run
-  - rollback: takes --environment, --revision (optional, defaults to previous)
-  - status: takes --environment, shows current deployment state
-  - Health check function that verifies deployment success
-  - Rollback function that reverts to previous version on failure
-  - Logging throughout
-
-You don't need actual kubectl/AWS calls — implement the logic with
-print statements or subprocess calls that would work in a real environment.
-"""
 
 import argparse
 import logging
 import sys
+import time
 
 
 def setup_logging():
-    """Configure logging."""
-    # TODO
-    pass
-
-
-def parse_args():
-    """Parse command line arguments with subcommands."""
-    # TODO: Implement argparse with deploy, rollback, status subcommands
-    pass
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s"
+    )
 
 
 def health_check(environment, timeout=300):
-    """Check deployment health after rollout."""
-    # TODO: Implement health check logic
-    pass
+    logging.info(f"Running health check for {environment} environment...")
+    time.sleep(2)
+    logging.info("Application is healthy.")
+    return True
 
 
 def deploy(environment, image_tag, dry_run=False):
-    """Deploy the application to the specified environment."""
-    # TODO: Implement deployment logic
-    pass
+    logging.info(f"Starting deployment to {environment}")
+    logging.info(f"Image tag: {image_tag}")
+
+    if dry_run:
+        logging.info("Dry run enabled — no changes applied.")
+        return
+
+    logging.info("Deploying application...")
+    time.sleep(2)
+
+    if not health_check(environment):
+        logging.error("Health check failed. Rolling back...")
+        rollback(environment)
+        sys.exit(1)
+
+    logging.info("Deployment successful.")
 
 
 def rollback(environment, revision=None):
-    """Rollback to a previous deployment revision."""
-    # TODO: Implement rollback logic
-    pass
+    logging.info(f"Rolling back deployment in {environment}")
+    if revision:
+        logging.info(f"Rolling back to revision {revision}")
+    else:
+        logging.info("Rolling back to previous revision")
+    time.sleep(2)
+    logging.info("Rollback completed.")
 
 
 def status(environment):
-    """Show current deployment status."""
-    # TODO: Implement status check
-    pass
+    logging.info(f"Checking deployment status for {environment}")
+    logging.info("Application is running and healthy.")
 
 
-def main():
-    # TODO: Wire up argument parsing to functions
-    pass
+def parse_args():
+    parser = argparse.ArgumentParser(description="Deployment automation tool")
 
+    subparsers = parser.add_subparsers(dest="command")
 
-if __name__ == "__main__":
-    main()
+    deploy_parser = subparsers.add_parser("deploy")
+    deploy_parser.add_argument("--environment", required=True, choices=["staging", "production"])
+    deploy_parser.add_argument("--image-tag", required=True)
+    deploy_parser.add_argument("--dry-run", action="store_true")
