@@ -7,14 +7,6 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  backend "s3" {
-    bucket         = "vlt-terraform-state"
-    key            = "customer-deployments/site-2847/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-locks"
-    encrypt        = true
-  }
 }
 
 provider "aws" {
