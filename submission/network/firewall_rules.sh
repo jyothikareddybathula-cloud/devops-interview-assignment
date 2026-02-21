@@ -1,55 +1,51 @@
 #!/usr/bin/env bash
-#
-# firewall_rules.sh — Edge device firewall configuration
-#
-# TASK: Implement iptables rules for the edge device.
-# Reference data/site_spec.json for network details.
-#
-# Requirements:
-#   - Default DROP policy on INPUT and FORWARD chains
-#   - Allow RTSP (554/tcp, 554/udp) from camera VLAN only
-#   - Allow HTTPS (443/tcp) outbound for S3 uploads and API calls
-#   - Allow SSH (22/tcp) from management VLAN only
-#   - Camera VLAN must not be able to reach management or corporate VLANs
-#   - Allow established/related connections
-#   - Allow loopback traffic
-#   - Allow ICMP for diagnostics
-#
-# Hints:
-#   - Camera VLAN: (define based on your site_plan.md)
-#   - Management VLAN: 10.50.1.0/24
-#   - Edge device interfaces: eno1 (mgmt/WAN), eno2 (camera VLAN)
+
+# firewall_rules.sh - Edge device firewall configuration
 
 set -euo pipefail
 
-# --- Flush existing rules ---
-# TODO
+CAMERA_VLAN="10.50.20.0/24"
+MGMT_VLAN="10.50.1.0/24"
 
-# --- Default policies ---
-# TODO
+# Flush existing rules
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
 
-# --- Loopback ---
-# TODO
+# Default policies
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
 
-# --- Established/Related ---
-# TODO
+# Allow loopback
+iptables -A INPUT -i lo -j ACCEPT
 
-# --- SSH from management VLAN only ---
-# TODO
+# Allow established/related
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-# --- RTSP from camera VLAN only ---
-# TODO
+# Allow SSH from management VLAN only
+iptables -A INPUT -p tcp --dport 22 -s ${MGMT_VLAN} -j ACCEPT
 
-# --- HTTPS outbound ---
-# TODO
+# Allow RTSP from camera VLAN only (TCP/UDP 554)
+iptables -A INPUT -p tcp --dport 554 -s ${CAMERA_VLAN} -j ACCEPT
+iptables -A INPUT -p udp --dport 554 -s ${CAMERA_VLAN} -j ACCEPT
 
-# --- Camera VLAN isolation (block camera-to-management/corporate) ---
-# TODO
+# Allow HTTPS outbound (S3 uploads / API calls)
+iptables -A OUTPUT -p tcp --dport 443 -j ACCEPT
 
-# --- ICMP ---
-# TODO
+# Block camera VLAN from accessing management VLAN
+iptables -A FORWARD -s ${CAMERA_VLAN} -d ${MGMT_VLAN} -j DROP
 
-# --- Logging for dropped packets (optional but recommended) ---
-# TODO
+# Block camera VLAN from accessing corporate VLAN
+iptables -A FORWARD -s ${CAMERA_VLAN} -d 10.50.10.0/24 -j DROP
+
+# Allow ICMP (diagnostics)
+iptables -A INPUT -p icmp -j ACCEPT
+iptables -A OUTPUT -p icmp -j ACCEPT
+
+# Optional logging for dropped packets
+iptables -A INPUT -j LOG --log-prefix "IPTables-Dropped: " --log-level 4
 
 echo "Firewall rules applied successfully"
