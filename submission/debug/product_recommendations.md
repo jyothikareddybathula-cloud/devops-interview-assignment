@@ -1,23 +1,44 @@
 # Product & Engineering Recommendations
 
-Based on your investigation of the debug scenario, provide recommendations for improving the platform.
+Based on investigation of the VPN instability incident caused by MTU misconfiguration, the following improvements are recommended.
+
+---
 
 ## Monitoring Improvements
 
-<!-- What monitoring should be added to detect this class of issue earlier? -->
+- Monitor interface MTU changes and generate alerts on configuration drift.
+- Alert on ESP packet fragmentation events.
+- Alert on repeated DPD timeouts.
+- Monitor VPN tunnel flapping (multiple up/down events within 5 minutes).
+- Trigger alerts when packet loss exceeds 5% on encrypted tunnels.
+- Monitor throughput degradation compared to baseline performance.
+
+---
 
 ## Automated Detection
 
-<!-- How could the system automatically detect and potentially self-heal from this type of failure? -->
+- Implement automated detection of MTU mismatch between local interface and VPN path MTU.
+- Add health checks that validate tunnel stability after network configuration changes.
+- Automatically rollback MTU changes if fragmentation or DPD failures are detected.
+- Implement synthetic traffic tests to validate VPN connectivity post-change.
+
+---
 
 ## Platform Changes
 
-<!-- What changes to the product/platform would reduce the likelihood or impact of similar incidents? -->
+- Enforce MTU validation rules in configuration management pipelines.
+- Require change approval for network interface MTU modifications.
+- Implement configuration drift detection for edge devices.
+- Integrate network configuration into Infrastructure-as-Code workflows.
+- Add automated pre-change and post-change validation checks.
+
+---
 
 ## Edge Device Improvements
 
-<!-- What improvements to edge device management would help? Consider:
-- Configuration management
-- Change control
-- Automated validation
--->
+- Centralized configuration management for edge interfaces.
+- Version-controlled network configuration.
+- Change logging with user attribution.
+- Automated compliance checks for MTU values.
+- Runbook automation for VPN health verification.
+- Scheduled audits comparing interface MTU against expected baseline.
